@@ -1,0 +1,22 @@
+# Artefatos de build: a compilação acontece dentro da imagem.
+target/
+
+# Metadados de VCS e IDE.
+.git/
+.gitignore
+.gitattributes
+.idea/
+*.iml
+
+# Wrapper do Maven: o estágio de build usa a imagem oficial do Maven.
+.mvn/
+mvnw
+mvnw.cmd
+
+# Arquivos de infraestrutura e documentação, irrelevantes para o build.
+Dockerfile
+.dockerignore
+docker-compose.yml
+.env
+README.md
+*.pdf
