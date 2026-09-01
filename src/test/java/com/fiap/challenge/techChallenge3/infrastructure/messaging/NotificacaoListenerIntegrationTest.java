@@ -43,7 +43,7 @@ class NotificacaoListenerIntegrationTest {
         User paciente = userRepository.save(User.builder()
                 .nome("Maria").email("maria@paciente.com").senha("hash").role(Role.PACIENTE).build());
 
-        notificacaoListener.receberEventoConsulta(
+        notificacaoListener.receberConsultaCriada(
                 new ConsultaCriadaEvent(1L, paciente.getId(), 20L, DATA_HORA));
 
         List<Notificacao> notificacoes = notificacaoRepository.findByPacienteId(paciente.getId());
@@ -58,7 +58,7 @@ class NotificacaoListenerIntegrationTest {
     void deveRegistrarFalhaQuandoPacienteNaoExiste() {
         long pacienteInexistente = 999_999L;
 
-        notificacaoListener.receberEventoConsulta(
+        notificacaoListener.receberConsultaCriada(
                 new ConsultaCriadaEvent(1L, pacienteInexistente, 20L, DATA_HORA));
 
         List<Notificacao> notificacoes = notificacaoRepository.findByPacienteId(pacienteInexistente);

@@ -38,7 +38,7 @@ class NotificacaoListenerTest {
 
     @Test
     void deveProcessarEventoDeConsultaCriada() {
-        notificacaoListener.receberEventoConsulta(new ConsultaCriadaEvent(1L, 10L, 20L, DATA_HORA));
+        notificacaoListener.receberConsultaCriada(new ConsultaCriadaEvent(1L, 10L, 20L, DATA_HORA));
 
         verify(enviarLembreteConsultaUseCase).execute(1L, 10L, DATA_HORA, TipoNotificacao.CONSULTA_CRIADA);
         assertThat(notificacaoListener.getNotificacoesEnviadas()).isEqualTo(1);
@@ -46,7 +46,7 @@ class NotificacaoListenerTest {
 
     @Test
     void deveProcessarEventoDeConsultaEditada() {
-        notificacaoListener.receberEventoConsulta(
+        notificacaoListener.receberConsultaEditada(
                 new ConsultaEditadaEvent(1L, 10L, 20L, DATA_HORA, StatusConsulta.REALIZADA));
 
         verify(enviarLembreteConsultaUseCase).execute(1L, 10L, DATA_HORA, TipoNotificacao.CONSULTA_EDITADA);
@@ -55,8 +55,8 @@ class NotificacaoListenerTest {
 
     @Test
     void deveIncrementarContadorParaCadaEventoRecebido() {
-        notificacaoListener.receberEventoConsulta(new ConsultaCriadaEvent(1L, 10L, 20L, DATA_HORA));
-        notificacaoListener.receberEventoConsulta(
+        notificacaoListener.receberConsultaCriada(new ConsultaCriadaEvent(1L, 10L, 20L, DATA_HORA));
+        notificacaoListener.receberConsultaEditada(
                 new ConsultaEditadaEvent(1L, 10L, 20L, DATA_HORA, StatusConsulta.CANCELADA));
 
         assertThat(notificacaoListener.getNotificacoesEnviadas()).isEqualTo(2);
@@ -64,7 +64,7 @@ class NotificacaoListenerTest {
 
     @Test
     void deveIgnorarEventoDesconhecidoSemContabilizar() {
-        notificacaoListener.receberEventoConsulta("payload inesperado");
+        notificacaoListener.receberEventoDesconhecido("payload inesperado");
 
         verifyNoInteractions(enviarLembreteConsultaUseCase);
         assertThat(notificacaoListener.getNotificacoesEnviadas()).isZero();
