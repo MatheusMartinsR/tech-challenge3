@@ -5,6 +5,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -34,7 +35,12 @@ public class RabbitMQConfig {
 
     @Bean
     public Queue notificacaoQueue() {
-        return new Queue(NOTIFICACAO_QUEUE, true);
+        // O argumento x-dead-letter-exchange precisa ser declarado aqui: ele é imutável
+        // depois que a fila é criada. O destino das mensagens mortas está em
+        // NotificacaoRabbitConfig.
+        return QueueBuilder.durable(NOTIFICACAO_QUEUE)
+                .deadLetterExchange(NotificacaoRabbitConfig.NOTIFICACAO_DLX)
+                .build();
     }
 
     @Bean
