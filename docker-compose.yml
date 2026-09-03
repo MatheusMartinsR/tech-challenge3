@@ -22,7 +22,10 @@ services:
     volumes:
       - postgres-agendamento-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_AGENDAMENTO_USER}"]
+      # O -d e obrigatorio: sem ele o pg_isready assume que o banco tem o mesmo
+      # nome do usuario, tenta conectar num banco inexistente e o Postgres
+      # registra "FATAL: database ... does not exist" a cada verificacao.
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_AGENDAMENTO_USER} -d ${POSTGRES_AGENDAMENTO_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -39,7 +42,9 @@ services:
     volumes:
       - postgres-notificacao-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_NOTIFICACAO_USER}"]
+      # Ver a nota no healthcheck do postgres-agendamento: aqui o nome do banco
+      # difere do nome do usuario, entao omitir o -d gera FATAL no log.
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_NOTIFICACAO_USER} -d ${POSTGRES_NOTIFICACAO_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5

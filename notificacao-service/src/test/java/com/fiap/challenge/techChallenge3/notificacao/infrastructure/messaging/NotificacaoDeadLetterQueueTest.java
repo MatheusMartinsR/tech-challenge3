@@ -59,8 +59,12 @@ class NotificacaoDeadLetterQueueTest {
 
     private static final long PACIENTE_ID = 4242L;
 
+    // Margem larga de propósito: num runner de CI a subida do broker é bem mais
+    // lenta que na máquina de quem desenvolve. O tempo real continua sendo o que
+    // o container leva; isto é só o teto antes de desistir.
     @Container
-    static RabbitMQContainer rabbitMQContainer = new RabbitMQContainer("rabbitmq:3.13-management-alpine");
+    static RabbitMQContainer rabbitMQContainer = new RabbitMQContainer("rabbitmq:3.13-management-alpine")
+            .withStartupTimeout(Duration.ofMinutes(5));
 
     @DynamicPropertySource
     static void rabbitProperties(DynamicPropertyRegistry registry) {
@@ -91,9 +95,13 @@ class NotificacaoDeadLetterQueueTest {
                 new ConsultaCriadaEvent(777L, PACIENTE_ID, "Paciente DLQ", "dlq@paciente.com", 20L,
                         LocalDateTime.now().plusDays(1)));
 
+        // Esta espera cobre o ciclo inteiro: entrega, as reentregas do retry, a
+        // rejeição final e a republicação na DLQ pelo broker. Teto generoso para
+        // não falhar por lentidão do runner de CI; quando tudo vai bem, o teste
+        // termina assim que a mensagem morta aparece.
         Message mensagemMorta = Awaitility.await()
-                .atMost(Duration.ofSeconds(15))
-                .until(() -> rabbitTemplate.receive(NotificacaoRabbitConfig.NOTIFICACAO_DLQ, 500),
+                .atMost(Duration.ofSeconds(90))
+                .until(() -> rabbitTemplate.receive(NotificacaoRabbitConfig.NOTIFICACAO_DLQ, 1000),
                         mensagem -> mensagem != null);
 
         // O broker carimba o histórico da morte ao republicar na dead letter exchange.

@@ -14,6 +14,7 @@ import org.testcontainers.junit.jupiter.EnabledIfDockerAvailable;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -34,8 +35,11 @@ class NotificacaoPersistenceIntegrationTest {
 
     private static final LocalDateTime DATA_ENVIO = LocalDateTime.of(2026, 10, 15, 14, 30);
 
+    // Margem larga para a subida do banco num runner de CI (ver comentário
+    // equivalente em NotificacaoDeadLetterQueueTest).
     @Container
-    static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:16-alpine");
+    static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:16-alpine")
+            .withStartupTimeout(Duration.ofMinutes(5));
 
     @DynamicPropertySource
     static void postgresProperties(DynamicPropertyRegistry registry) {
