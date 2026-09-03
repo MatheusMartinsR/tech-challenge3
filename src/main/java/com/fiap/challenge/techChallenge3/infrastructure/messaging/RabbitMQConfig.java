@@ -2,10 +2,6 @@ package com.fiap.challenge.techChallenge3.infrastructure.messaging;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import org.springframework.amqp.core.Binding;
-import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -15,42 +11,25 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Configuração do broker RabbitMQ para o domínio de consultas.
+ * Configuração do broker RabbitMQ do Serviço de Agendamento: a exchange onde os
+ * eventos de consulta são publicados, e a infraestrutura de publicação.
  *
- * Exchange do tipo topic "consultas.exchange" com uma fila dedicada às
- * notificações, ligada pelas routing keys "consulta.criada" e "consulta.editada".
+ * <p>Deliberadamente não declara nenhuma fila: o Serviço de Agendamento publica
+ * na exchange topic "consultas.exchange" (routing keys "consulta.criada" e
+ * "consulta.editada") sem saber quem consome nem quantos consumidores existem.
+ * A fila do Serviço de Notificações — e a decisão de dead-letter dela — é
+ * responsabilidade de quem consome, em {@link NotificacaoRabbitConfig}.</p>
  */
 @Configuration
 public class RabbitMQConfig {
 
     public static final String CONSULTAS_EXCHANGE = "consultas.exchange";
-    public static final String NOTIFICACAO_QUEUE = "consultas.notificacao.queue";
     public static final String ROUTING_KEY_CONSULTA_CRIADA = "consulta.criada";
     public static final String ROUTING_KEY_CONSULTA_EDITADA = "consulta.editada";
 
     @Bean
     public TopicExchange consultasExchange() {
         return new TopicExchange(CONSULTAS_EXCHANGE);
-    }
-
-    @Bean
-    public Queue notificacaoQueue() {
-        // O argumento x-dead-letter-exchange precisa ser declarado aqui: ele é imutável
-        // depois que a fila é criada. O destino das mensagens mortas está em
-        // NotificacaoRabbitConfig.
-        return QueueBuilder.durable(NOTIFICACAO_QUEUE)
-                .deadLetterExchange(NotificacaoRabbitConfig.NOTIFICACAO_DLX)
-                .build();
-    }
-
-    @Bean
-    public Binding bindingConsultaCriada(Queue notificacaoQueue, TopicExchange consultasExchange) {
-        return BindingBuilder.bind(notificacaoQueue).to(consultasExchange).with(ROUTING_KEY_CONSULTA_CRIADA);
-    }
-
-    @Bean
-    public Binding bindingConsultaEditada(Queue notificacaoQueue, TopicExchange consultasExchange) {
-        return BindingBuilder.bind(notificacaoQueue).to(consultasExchange).with(ROUTING_KEY_CONSULTA_EDITADA);
     }
 
     @Bean

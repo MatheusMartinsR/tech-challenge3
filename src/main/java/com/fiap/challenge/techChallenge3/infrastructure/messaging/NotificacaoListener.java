@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * chega ao listener e nenhum evento é reconhecido.</p>
  */
 @Component
-@RabbitListener(queues = RabbitMQConfig.NOTIFICACAO_QUEUE)
+@RabbitListener(queues = NotificacaoRabbitConfig.NOTIFICACAO_QUEUE)
 public class NotificacaoListener {
 
     private static final Logger log = LoggerFactory.getLogger(NotificacaoListener.class);

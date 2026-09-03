@@ -107,7 +107,7 @@ class NotificacaoDeadLetterQueueTest {
         assertThat(xDeath).isInstanceOf(List.class);
         Map<?, ?> morte = (Map<?, ?>) ((List<?>) xDeath).get(0);
         assertThat(morte.get("reason")).hasToString("rejected");
-        assertThat(morte.get("queue")).hasToString(RabbitMQConfig.NOTIFICACAO_QUEUE);
+        assertThat(morte.get("queue")).hasToString(NotificacaoRabbitConfig.NOTIFICACAO_QUEUE);
 
         // A primeira tentativa mais as reentregas configuradas.
         verify(envioLembretePort, atLeast(2)).enviar(any());

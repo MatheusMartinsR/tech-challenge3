@@ -5,13 +5,23 @@ import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.QueueBuilder;
+import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.retry.MessageRecoverer;
 import org.springframework.amqp.rabbit.retry.RejectAndDontRequeueRecoverer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Infraestrutura de mensagens mortas (<i>dead letter</i>) do Serviço de Notificações.
+ * Configuração do broker RabbitMQ do Serviço de Notificações: a fila que este
+ * serviço consome e sua infraestrutura de mensagens mortas (<i>dead letter</i>).
+ *
+ * <p>O Serviço de Notificações é dono de {@link #NOTIFICACAO_QUEUE} — o Serviço
+ * de Agendamento (ver {@link RabbitMQConfig}) só publica na exchange
+ * "consultas.exchange" e não conhece esta fila. O binding abaixo ainda injeta o
+ * bean {@code TopicExchange} de {@link RabbitMQConfig} porque os dois hoje
+ * vivem no mesmo módulo/contexto Spring; quando forem separados em serviços de
+ * fato, essa dependência vira apenas o nome da exchange combinado por
+ * convenção entre os times, sem acoplar as duas classes de configuração.</p>
  *
  * <p>Quando o consumo de um evento falha e as tentativas configuradas em
  * {@code spring.rabbitmq.listener.simple.retry.*} se esgotam, a mensagem não pode
@@ -20,22 +30,38 @@ import org.springframework.context.annotation.Configuration;
  * na exchange apontada pelo argumento {@code x-dead-letter-exchange} da fila
  * principal, de onde chega à {@link #NOTIFICACAO_DLQ} para inspeção posterior.</p>
  *
- * <p>A exchange é do tipo <i>fanout</i> de propósito: ao republicar, o RabbitMQ
- * preserva a routing key original ({@code consulta.criada} ou {@code consulta.editada}),
+ * <p>A exchange de dead letter é do tipo <i>fanout</i> de propósito: ao republicar, o
+ * RabbitMQ preserva a routing key original ({@code consulta.criada} ou {@code consulta.editada}),
  * então uma exchange <i>topic</i> exigiria um binding por routing key para não
  * descartar metade das mensagens mortas.</p>
- *
- * <p>Vive separada de {@link RabbitMQConfig} — que declara a exchange e a fila do
- * domínio de consultas — para manter o que é do Serviço de Notificações em um só
- * arquivo. A única dependência na configuração original é o argumento
- * {@code x-dead-letter-exchange} do bean da fila principal, que precisa ser
- * declarado ali por ser imutável após a criação da fila.</p>
  */
 @Configuration
 public class NotificacaoRabbitConfig {
 
+    public static final String NOTIFICACAO_QUEUE = "consultas.notificacao.queue";
     public static final String NOTIFICACAO_DLX = "consultas.notificacao.dlx";
     public static final String NOTIFICACAO_DLQ = "consultas.notificacao.queue.dlq";
+
+    @Bean
+    public Queue notificacaoQueue() {
+        // O argumento x-dead-letter-exchange precisa ser declarado aqui: ele é imutável
+        // depois que a fila é criada.
+        return QueueBuilder.durable(NOTIFICACAO_QUEUE)
+                .deadLetterExchange(NOTIFICACAO_DLX)
+                .build();
+    }
+
+    @Bean
+    public Binding bindingConsultaCriada(Queue notificacaoQueue, TopicExchange consultasExchange) {
+        return BindingBuilder.bind(notificacaoQueue).to(consultasExchange)
+                .with(RabbitMQConfig.ROUTING_KEY_CONSULTA_CRIADA);
+    }
+
+    @Bean
+    public Binding bindingConsultaEditada(Queue notificacaoQueue, TopicExchange consultasExchange) {
+        return BindingBuilder.bind(notificacaoQueue).to(consultasExchange)
+                .with(RabbitMQConfig.ROUTING_KEY_CONSULTA_EDITADA);
+    }
 
     @Bean
     public FanoutExchange notificacaoDeadLetterExchange() {
