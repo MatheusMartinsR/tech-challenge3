@@ -1,9 +1,0 @@
-package com.fiap.challenge.techChallenge3.domain.model;
-
-/**
- * Origem do lembrete enviado ao paciente.
- */
-public enum TipoNotificacao {
-    CONSULTA_CRIADA,
-    CONSULTA_EDITADA
-}
