@@ -51,8 +51,12 @@ class ConsultaMessagingTest {
 
     private static final String FILA_DE_TESTE = "teste.consultas.publicacao";
 
+    // Margem larga de propósito: num runner de CI a subida do broker é bem mais
+    // lenta que na máquina de quem desenvolve. O tempo real continua sendo o que
+    // o container leva; isto é só o teto antes de desistir.
     @Container
-    static RabbitMQContainer rabbitMQContainer = new RabbitMQContainer("rabbitmq:3.13-management-alpine");
+    static RabbitMQContainer rabbitMQContainer = new RabbitMQContainer("rabbitmq:3.13-management-alpine")
+            .withStartupTimeout(Duration.ofMinutes(5));
 
     @DynamicPropertySource
     static void rabbitProperties(DynamicPropertyRegistry registry) {
@@ -97,9 +101,12 @@ class ConsultaMessagingTest {
 
         eventPublisher.publicarConsultaCriada(consulta);
 
+        // Teto generoso: se a mensagem chega, chega em milissegundos, e o teste
+        // termina assim que ela aparece. O valor alto só evita falha por lentidão
+        // do runner de CI — não faz o teste demorar quando tudo está bem.
         Object recebido = Awaitility.await()
-                .atMost(Duration.ofSeconds(10))
-                .until(() -> rabbitTemplate.receiveAndConvert(FILA_DE_TESTE, 500), Objects::nonNull);
+                .atMost(Duration.ofSeconds(60))
+                .until(() -> rabbitTemplate.receiveAndConvert(FILA_DE_TESTE, 1000), Objects::nonNull);
 
         assertThat(recebido).isInstanceOf(ConsultaCriadaEvent.class);
         ConsultaCriadaEvent evento = (ConsultaCriadaEvent) recebido;
