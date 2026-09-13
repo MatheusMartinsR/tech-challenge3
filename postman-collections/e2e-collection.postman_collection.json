@@ -1,0 +1,396 @@
+{
+    "info":  {
+                 "name":  "TechChallenge3 - End-to-end flows",
+                 "_postman_id":  "techchallenge3-e2e",
+                 "description":  "Automated acceptance flows for Issue #12. Run the complete collection in order against docker compose.",
+                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+             },
+    "event":  [
+                  {
+                      "listen":  "prerequest",
+                      "script":  {
+                                     "exec":  [
+                                                  "if (!pm.environment.get(\u0027futureDate\u0027)) {",
+                                                  "  const date = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);",
+                                                  "  date.setUTCHours(14, 0, 0, 0);",
+                                                  "  pm.environment.set(\u0027futureDate\u0027, date.toISOString().replace(\u0027.000Z\u0027, \u0027\u0027));",
+                                                  "}"
+                                              ]
+                                 }
+                  }
+              ],
+    "item":  [
+                 {
+                     "name":  "Flow 1 - Register, login, schedule and notify",
+                     "item":  [
+                                  {
+                                      "name":  "1.1 Register a new patient",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"nome\": \"E2E Patient\",\n  \"email\": \"e2e.patient.{{$timestamp}}@example.com\",\n  \"senha\": \"senha123\",\n  \"role\": \"PACIENTE\"\n}"
+                                                               },
+                                                      "url":  "{{base_url}}/auth/register"
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Patient registration returns identity and token\u0027, () =\u003e {",
+                                                                                    "  pm.response.to.have.status(201); const body = pm.response.json();",
+                                                                                    "  pm.expect(body.token).to.be.a(\u0027string\u0027).and.not.empty; pm.expect(body.userId).to.be.a(\u0027number\u0027);",
+                                                                                    "  pm.environment.set(\u0027patientE2EId\u0027, body.userId); pm.environment.set(\u0027tokenPatientE2E\u0027, body.token);",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "1.2 Login as demo nurse",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"email\": \"{{enfermeiroDemoEmail}}\",\n  \"senha\": \"{{demoSenha}}\"\n}"
+                                                               },
+                                                      "url":  "{{base_url}}/auth/login"
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Nurse login succeeds\u0027, () =\u003e { pm.response.to.have.status(200); const body=pm.response.json(); pm.environment.set(\u0027tokenNurseE2E\u0027, body.token); });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "1.3 Login as demo doctor and capture ID",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"email\": \"{{medicoDemoEmail}}\",\n  \"senha\": \"{{demoSenha}}\"\n}"
+                                                               },
+                                                      "url":  "{{base_url}}/auth/login"
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Doctor identity is returned\u0027, () =\u003e { pm.response.to.have.status(200); const body=pm.response.json(); pm.environment.set(\u0027tokenDoctorE2E\u0027, body.token); pm.environment.set(\u0027doctorE2EId\u0027, body.userId); });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "1.4 Read queue acknowledgements before creation",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Basic {{rabbitmq_auth}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{rabbitmq_url}}/api/queues/%2F/consultas.notification.queue"
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027RabbitMQ management API is available\u0027, () =\u003e { pm.response.to.have.status(200); const body=pm.response.json(); pm.environment.set(\u0027acksBeforeCreate\u0027, (body.message_stats \u0026\u0026 body.message_stats.ack) || 0); });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "1.5 Create appointment for the registered patient",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{tokenNurseE2E}}"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"pacienteId\": {{patientE2EId}},\n  \"medicoId\": {{doctorE2EId}},\n  \"dataHora\": \"{{futureDate}}\",\n  \"observacoes\": \"Appointment created by automated E2E flow\"\n}"
+                                                               },
+                                                      "url":  "{{base_url}}/consultas"
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Appointment is scheduled\u0027, () =\u003e { pm.response.to.have.status(201); const body=pm.response.json(); pm.expect(body.status).to.eql(\u0027AGENDADA\u0027); pm.environment.set(\u0027appointmentE2EId\u0027, body.id); });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "1.6 Confirm creation event was acknowledged",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Basic {{rabbitmq_auth}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{rabbitmq_url}}/api/queues/%2F/consultas.notification.queue"
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.response.to.have.status(200);",
+                                                                                    "const body = pm.response.json();",
+                                                                                    "const after = (body.message_stats \u0026\u0026 body.message_stats.ack) || 0;",
+                                                                                    "const before = Number(pm.environment.get(\u0027acksBeforeCreate\u0027) || 0);",
+                                                                                    "const attempts = Number(pm.environment.get(\u0027createAckAttempts\u0027) || 0);",
+                                                                                    "if (after \u003c= before \u0026\u0026 attempts \u003c 5) {",
+                                                                                    "  pm.environment.set(\u0027createAckAttempts\u0027, attempts + 1);",
+                                                                                    "  pm.execution.setNextRequest(pm.info.requestName);",
+                                                                                    "} else {",
+                                                                                    "  pm.environment.unset(\u0027createAckAttempts\u0027);",
+                                                                                    "  pm.test(\u0027Creation event was consumed\u0027, () =\u003e pm.expect(after).to.be.above(before));",
+                                                                                    "}"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Flow 2 - Patient data isolation",
+                     "item":  [
+                                  {
+                                      "name":  "2.1 Register an isolated patient",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"nome\": \"Isolated Patient\",\n  \"email\": \"e2e.isolated.{{$timestamp}}@example.com\",\n  \"senha\": \"senha123\",\n  \"role\": \"PACIENTE\"\n}"
+                                                               },
+                                                      "url":  "{{base_url}}/auth/register"
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Isolated patient is registered\u0027, () =\u003e { pm.response.to.have.status(201); const body=pm.response.json(); pm.environment.set(\u0027tokenIsolatedPatientE2E\u0027, body.token); });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "2.2 Appointment owner lists only their records",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{tokenPatientE2E}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{base_url}}/consultas"
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Every record belongs to the authenticated patient\u0027, () =\u003e { pm.response.to.have.status(200); const items=pm.response.json(); const id=Number(pm.environment.get(\u0027patientE2EId\u0027)); pm.expect(items.length).to.be.above(0); items.forEach(item =\u003e pm.expect(item.pacienteId).to.eql(id)); });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "2.3 Isolated patient has an empty list",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{tokenIsolatedPatientE2E}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{base_url}}/consultas"
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027No records from other patients are exposed\u0027, () =\u003e { pm.response.to.have.status(200); pm.expect(pm.response.json()).to.be.an(\u0027array\u0027).that.is.empty; });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "2.4 Isolated patient cannot read another appointment",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{tokenIsolatedPatientE2E}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{base_url}}/consultas/{{appointmentE2EId}}"
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Cross-patient access is forbidden\u0027, () =\u003e pm.response.to.have.status(403));"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Flow 3 - Doctor edits and publishes update",
+                     "item":  [
+                                  {
+                                      "name":  "3.1 Read queue acknowledgements before update",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Basic {{rabbitmq_auth}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{rabbitmq_url}}/api/queues/%2F/consultas.notification.queue"
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027RabbitMQ management API is available\u0027, () =\u003e { pm.response.to.have.status(200); const body=pm.response.json(); pm.environment.set(\u0027acksBeforeUpdate\u0027, (body.message_stats \u0026\u0026 body.message_stats.ack) || 0); });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "3.2 Doctor edits the appointment",
+                                      "request":  {
+                                                      "method":  "PUT",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{tokenDoctorE2E}}"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"pacienteId\": {{patientE2EId}},\n  \"medicoId\": {{doctorE2EId}},\n  \"dataHora\": \"{{futureDate}}\",\n  \"observacoes\": \"Appointment updated by automated E2E flow\"\n}"
+                                                               },
+                                                      "url":  "{{base_url}}/consultas/{{appointmentE2EId}}"
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Appointment is updated\u0027, () =\u003e { pm.response.to.have.status(200); pm.expect(pm.response.json().observacoes).to.eql(\u0027Appointment updated by automated E2E flow\u0027); });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "3.3 Confirm update event was acknowledged",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Basic {{rabbitmq_auth}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{rabbitmq_url}}/api/queues/%2F/consultas.notification.queue"
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.response.to.have.status(200);",
+                                                                                    "const body = pm.response.json();",
+                                                                                    "const after = (body.message_stats \u0026\u0026 body.message_stats.ack) || 0;",
+                                                                                    "const before = Number(pm.environment.get(\u0027acksBeforeUpdate\u0027) || 0);",
+                                                                                    "const attempts = Number(pm.environment.get(\u0027updateAckAttempts\u0027) || 0);",
+                                                                                    "if (after \u003c= before \u0026\u0026 attempts \u003c 5) {",
+                                                                                    "  pm.environment.set(\u0027updateAckAttempts\u0027, attempts + 1);",
+                                                                                    "  pm.execution.setNextRequest(pm.info.requestName);",
+                                                                                    "} else {",
+                                                                                    "  pm.environment.unset(\u0027updateAckAttempts\u0027);",
+                                                                                    "  pm.test(\u0027Update event was consumed\u0027, () =\u003e pm.expect(after).to.be.above(before));",
+                                                                                    "}"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  }
+                              ]
+                 }
+             ]
+}

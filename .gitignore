@@ -34,3 +34,8 @@ build/
 
 # Material de apoio do desafio (PDFs do enunciado e das issues): nao versionar.
 *.pdf
+
+# Local secrets and generated E2E evidence
+.env
+docs/e2e-results/*
+!docs/e2e-results/.gitkeep

@@ -1,59 +1,14 @@
 {
-  "info": {
-    "name": "TechChallenge3 - Auth",
-    "_postman_id": "auth-collection",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-  },
+  "info": {"name":"TechChallenge3 - Authentication","_postman_id":"techchallenge3-auth","description":"Registration and login examples for every profile. Successful requests save tokens and user IDs.","schema":"https://schema.getpostman.com/json/collection/v2.1.0/collection.json"},
   "item": [
-    {
-      "name": "Register (POST /auth/register)",
-      "request": {
-        "method": "POST",
-        "header": [
-          { "key": "Content-Type", "value": "application/json" }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"nome\": \"Usuário Teste\",\n  \"email\": \"teste+paciente@example.com\",\n  \"senha\": \"senha123\",\n  \"role\": \"PACIENTE\"\n}"
-        },
-        "url": {
-          "raw": "{{base_url}}/auth/register",
-          "host": ["{{base_url}}"],
-          "path": ["auth","register"]
-        }
-      }
-    },
-    {
-      "name": "Login (POST /auth/login)",
-      "request": {
-        "method": "POST",
-        "header": [
-          { "key": "Content-Type", "value": "application/json" }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"email\": \"teste+paciente@example.com\",\n  \"senha\": \"senha123\"\n}"
-        },
-        "url": {
-          "raw": "{{base_url}}/auth/login",
-          "host": ["{{base_url}}"],
-          "path": ["auth","login"]
-        }
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "// Salva o token JWT na variável de ambiente 'token'",
-              "try {",
-              "  var body = pm.response.json();",
-              "  if (body && body.token) { pm.environment.set('token', body.token); }",
-              "} catch (e) { console.log('Não foi possível salvar o token:', e); }"
-            ]
-          }
-        }
-      ]
-    }
+    {"name":"Registration","item":[{
+      "name":"Register patient","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"nome\": \"API Patient\",\n  \"email\": \"api.patient.{{$timestamp}}@example.com\",\n  \"senha\": \"senha123\",\n  \"role\": \"PACIENTE\"\n}"},"url":"{{base_url}}/auth/register"},
+      "event":[{"listen":"test","script":{"exec":["pm.test('Created with JWT and identity', () => { pm.response.to.have.status(201); const body=pm.response.json(); pm.expect(body.userId).to.be.a('number'); pm.environment.set('tokenPaciente', body.token); pm.environment.set('pacienteId', body.userId); });"]}}]
+    }]},
+    {"name":"Login examples by profile","item":[
+      {"name":"Login as PACIENTE","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"email\": \"{{pacienteDemoEmail}}\",\n  \"senha\": \"{{demoSenha}}\"\n}"},"url":"{{base_url}}/auth/login"},"event":[{"listen":"test","script":{"exec":["pm.test('PACIENTE token is saved', () => { pm.response.to.have.status(200); const body=pm.response.json(); pm.expect(body.role).to.eql('PACIENTE'); pm.environment.set('tokenPaciente', body.token); pm.environment.set('pacienteId', body.userId); });"]}}],"response":[{"name":"PACIENTE response","status":"OK","code":200,"header":[{"key":"Content-Type","value":"application/json"}],"body":"{\"token\":\"<jwt>\",\"tokenType\":\"Bearer\",\"userId\":3,\"name\":\"Paciente Demo\",\"email\":\"paciente.demo@hospital.local\",\"role\":\"PACIENTE\"}"}]},
+      {"name":"Login as ENFERMEIRO","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"email\": \"{{enfermeiroDemoEmail}}\",\n  \"senha\": \"{{demoSenha}}\"\n}"},"url":"{{base_url}}/auth/login"},"event":[{"listen":"test","script":{"exec":["pm.test('ENFERMEIRO token is saved', () => { pm.response.to.have.status(200); const body=pm.response.json(); pm.expect(body.role).to.eql('ENFERMEIRO'); pm.environment.set('tokenEnfermeiro', body.token); });"]}}],"response":[{"name":"ENFERMEIRO response","status":"OK","code":200,"header":[{"key":"Content-Type","value":"application/json"}],"body":"{\"token\":\"<jwt>\",\"tokenType\":\"Bearer\",\"userId\":2,\"name\":\"Enfermeiro Demo\",\"email\":\"enfermeiro.demo@hospital.local\",\"role\":\"ENFERMEIRO\"}"}]},
+      {"name":"Login as MEDICO","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"email\": \"{{medicoDemoEmail}}\",\n  \"senha\": \"{{demoSenha}}\"\n}"},"url":"{{base_url}}/auth/login"},"event":[{"listen":"test","script":{"exec":["pm.test('MEDICO token is saved', () => { pm.response.to.have.status(200); const body=pm.response.json(); pm.expect(body.role).to.eql('MEDICO'); pm.environment.set('tokenMedico', body.token); pm.environment.set('medicoId', body.userId); });"]}}],"response":[{"name":"MEDICO response","status":"OK","code":200,"header":[{"key":"Content-Type","value":"application/json"}],"body":"{\"token\":\"<jwt>\",\"tokenType\":\"Bearer\",\"userId\":1,\"name\":\"Dra. Ana Demo\",\"email\":\"medico.demo@hospital.local\",\"role\":\"MEDICO\"}"}]}
+    ]}
   ]
 }
