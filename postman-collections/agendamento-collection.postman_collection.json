@@ -1,85 +1,522 @@
 {
-  "info": {
-    "name": "TechChallenge3 - Agendamento",
-    "_postman_id": "agendamento-collection",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-  },
-  "item": [
-    {
-      "name": "Create Consulta (POST /consultas)",
-      "request": {
-        "method": "POST",
-        "header": [
-          { "key": "Content-Type", "value": "application/json" },
-          { "key": "Authorization", "value": "Bearer {{token}}" }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"pacienteId\": 1,\n  \"medicoId\": 2,\n  \"dataHora\": \"2026-10-01T10:00:00\",\n  \"observacoes\": \"Consulta de teste via Postman\"\n}"
-        },
-        "url": {
-          "raw": "{{base_url}}/consultas",
-          "host": ["{{base_url}}"],
-          "path": ["consultas"]
-        }
-      }
-    },
-    {
-      "name": "List Consultas (GET /consultas)",
-      "request": {
-        "method": "GET",
-        "header": [
-          { "key": "Authorization", "value": "Bearer {{token}}" }
-        ],
-        "url": {
-          "raw": "{{base_url}}/consultas",
-          "host": ["{{base_url}}"],
-          "path": ["consultas"]
-        }
-      }
-    },
-    {
-      "name": "Get Consulta by ID (GET /consultas/{{consultaId}})",
-      "request": {
-        "method": "GET",
-        "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
-        "url": {
-          "raw": "{{base_url}}/consultas/{{consultaId}}",
-          "host": ["{{base_url}}"],
-          "path": ["consultas","{{consultaId}}"]
-        }
-      }
-    },
-    {
-      "name": "Update Consulta (PUT /consultas/{{consultaId}})",
-      "request": {
-        "method": "PUT",
-        "header": [
-          { "key": "Content-Type", "value": "application/json" },
-          { "key": "Authorization", "value": "Bearer {{token}}" }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"pacienteId\": 1,\n  \"medicoId\": 2,\n  \"dataHora\": \"2026-10-02T11:00:00\",\n  \"observacoes\": \"Atualização de teste\"\n}"
-        },
-        "url": {
-          "raw": "{{base_url}}/consultas/{{consultaId}}",
-          "host": ["{{base_url}}"],
-          "path": ["consultas","{{consultaId}}"]
-        }
-      }
-    },
-    {
-      "name": "Delete Consulta (DELETE /consultas/{{consultaId}})",
-      "request": {
-        "method": "DELETE",
-        "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
-        "url": {
-          "raw": "{{base_url}}/consultas/{{consultaId}}",
-          "host": ["{{base_url}}"],
-          "path": ["consultas","{{consultaId}}"]
-        }
-      }
-    }
-  ]
+    "info":  {
+                 "name":  "TechChallenge3 - Scheduling API",
+                 "_postman_id":  "agendamento-collection",
+                 "description":  "REST and GraphQL requests for the Scheduling Service. Run the Authentication collection first to populate role-specific JWTs and user IDs.",
+                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+             },
+    "item":  [
+                 {
+                     "name":  "REST - Appointment CRUD",
+                     "item":  [
+                                  {
+                                      "name":  "Create appointment (MEDICO or ENFERMEIRO)",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{tokenEnfermeiro}}"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"pacienteId\": {{pacienteId}},\n  \"medicoId\": {{medicoId}},\n  \"dataHora\": \"{{futureDate}}\",\n  \"observacoes\": \"Appointment created from Postman\"\n}"
+                                                               },
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/consultas",
+                                                                  "host":  [
+                                                                               "{{base_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "consultas"
+                                                                           ]
+                                                              },
+                                                      "description":  "Requires MEDICO or ENFERMEIRO. Expected response: 201 Created."
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Created\u0027, () =\u003e pm.response.to.have.status(201));",
+                                                                                    "try {",
+                                                                                    "  var body = pm.response.json();",
+                                                                                    "  if (body \u0026\u0026 body.id) { pm.environment.set(\u0027consultaId\u0027, body.id); }",
+                                                                                    "} catch (e) { console.log(\u0027Could not save consultaId:\u0027, e); }"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "List appointments",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{tokenPaciente}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/consultas",
+                                                                  "host":  [
+                                                                               "{{base_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "consultas"
+                                                                           ]
+                                                              },
+                                                      "description":  "Staff see all appointments; PACIENTE sees only their own."
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Request succeeds\u0027, () =\u003e pm.response.to.have.status(200));"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Get appointment by ID",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{tokenPaciente}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/consultas/{{consultaId}}",
+                                                                  "host":  [
+                                                                               "{{base_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "consultas",
+                                                                               "{{consultaId}}"
+                                                                           ]
+                                                              }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Request succeeds\u0027, () =\u003e pm.response.to.have.status(200));"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Update appointment (MEDICO or ENFERMEIRO)",
+                                      "request":  {
+                                                      "method":  "PUT",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{tokenMedico}}"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"pacienteId\": {{pacienteId}},\n  \"medicoId\": {{medicoId}},\n  \"dataHora\": \"{{futureDate}}\",\n  \"observacoes\": \"Appointment update from Postman\"\n}"
+                                                               },
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/consultas/{{consultaId}}",
+                                                                  "host":  [
+                                                                               "{{base_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "consultas",
+                                                                               "{{consultaId}}"
+                                                                           ]
+                                                              },
+                                                      "description":  "Requires MEDICO or ENFERMEIRO. Expected response: 200 OK."
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Request succeeds\u0027, () =\u003e pm.response.to.have.status(200));"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Cancel appointment (MEDICO or ENFERMEIRO)",
+                                      "request":  {
+                                                      "method":  "DELETE",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{tokenMedico}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/consultas/{{consultaId}}",
+                                                                  "host":  [
+                                                                               "{{base_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "consultas",
+                                                                               "{{consultaId}}"
+                                                                           ]
+                                                              },
+                                                      "description":  "Logical cancellation. Expected: 200 first, then 409 if repeated."
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Request succeeds\u0027, () =\u003e pm.response.to.have.status(200));"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "GraphQL - Appointments and history",
+                     "item":  [
+                                  {
+                                      "name":  "consultasPorPaciente",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{tokenPaciente}}"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"query\": \"query ConsultasPorPaciente($pacienteId: ID!, $status: StatusConsulta) { consultasPorPaciente(pacienteId: $pacienteId, status: $status) { id dataHora status observacoes paciente { id nome } medico { id nome } } }\",\n  \"variables\": {\n    \"pacienteId\": \"{{pacienteId}}\",\n    \"status\": \"AGENDADA\"\n  }\n}"
+                                                               },
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/graphql",
+                                                                  "host":  [
+                                                                               "{{base_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "graphql"
+                                                                           ]
+                                                              },
+                                                      "description":  "Query GraphQL (Issue #5). Protegida por role: MEDICO, ENFERMEIRO ou PACIENTE autenticado."
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027GraphQL query succeeds\u0027, () =\u003e { pm.response.to.have.status(200); pm.expect(pm.response.json().errors).to.be.undefined; });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "consultasFuturas",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{tokenPaciente}}"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"query\": \"query ConsultasFuturas($pacienteId: ID!) { consultasFuturas(pacienteId: $pacienteId) { id dataHora status paciente { nome } medico { nome } } }\",\n  \"variables\": {\n    \"pacienteId\": \"{{pacienteId}}\"\n  }\n}"
+                                                               },
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/graphql",
+                                                                  "host":  [
+                                                                               "{{base_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "graphql"
+                                                                           ]
+                                                              }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027GraphQL query succeeds\u0027, () =\u003e { pm.response.to.have.status(200); pm.expect(pm.response.json().errors).to.be.undefined; });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "historicoCompleto",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{tokenPaciente}}"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"query\": \"query HistoricoCompleto($pacienteId: ID!) { historicoCompleto(pacienteId: $pacienteId) { id dataHora status observacoes } }\",\n  \"variables\": {\n    \"pacienteId\": \"{{pacienteId}}\"\n  }\n}"
+                                                               },
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/graphql",
+                                                                  "host":  [
+                                                                               "{{base_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "graphql"
+                                                                           ]
+                                                              }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027GraphQL query succeeds\u0027, () =\u003e { pm.response.to.have.status(200); pm.expect(pm.response.json().errors).to.be.undefined; });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "consultasFuturas without token (denied)",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"query\": \"query { consultasFuturas(pacienteId: \\\"{{pacienteId}}\\\") { id status } }\"\n}"
+                                                               },
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/graphql",
+                                                                  "host":  [
+                                                                               "{{base_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "graphql"
+                                                                           ]
+                                                              },
+                                                      "description":  "GraphQL authorization example: HTTP 200 with an errors array."
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Unauthenticated GraphQL query is denied\u0027, () =\u003e { pm.response.to.have.status(200); pm.expect(pm.response.json().errors).to.be.an(\u0027array\u0027).that.is.not.empty; });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Authorization scenarios (403)",
+                     "item":  [
+                                  {
+                                      "name":  "PACIENTE attempts to create (403)",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{tokenPaciente}}"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"pacienteId\": {{pacienteId}},\n  \"medicoId\": {{medicoId}},\n  \"dataHora\": \"{{futureDate}}\",\n  \"observacoes\": \"This operation must be denied\"\n}"
+                                                               },
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/consultas",
+                                                                  "host":  [
+                                                                               "{{base_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "consultas"
+                                                                           ]
+                                                              },
+                                                      "description":  "Expected response: 403 Forbidden."
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Forbidden by role or ownership\u0027, () =\u003e pm.response.to.have.status(403));"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "PACIENTE attempts to update (403)",
+                                      "request":  {
+                                                      "method":  "PUT",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{tokenPaciente}}"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"pacienteId\": {{pacienteId}},\n  \"medicoId\": {{medicoId}},\n  \"dataHora\": \"{{futureDate}}\",\n  \"observacoes\": \"This operation must be denied\"\n}"
+                                                               },
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/consultas/{{consultaId}}",
+                                                                  "host":  [
+                                                                               "{{base_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "consultas",
+                                                                               "{{consultaId}}"
+                                                                           ]
+                                                              },
+                                                      "description":  "Expected response: 403 Forbidden."
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Forbidden by role or ownership\u0027, () =\u003e pm.response.to.have.status(403));"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "PACIENTE attempts to cancel (403)",
+                                      "request":  {
+                                                      "method":  "DELETE",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{tokenPaciente}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/consultas/{{consultaId}}",
+                                                                  "host":  [
+                                                                               "{{base_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "consultas",
+                                                                               "{{consultaId}}"
+                                                                           ]
+                                                              },
+                                                      "description":  "Expected response: 403 Forbidden."
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Forbidden by role or ownership\u0027, () =\u003e pm.response.to.have.status(403));"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "PACIENTE reads another patient appointment (403)",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{tokenPaciente}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/consultas/{{consultaDeOutremId}}",
+                                                                  "host":  [
+                                                                               "{{base_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "consultas",
+                                                                               "{{consultaDeOutremId}}"
+                                                                           ]
+                                                              },
+                                                      "description":  "Expected response: 403 Forbidden."
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Forbidden by role or ownership\u0027, () =\u003e pm.response.to.have.status(403));"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  }
+                              ]
+                 }
+             ],
+    "event":  [
+                  {
+                      "listen":  "prerequest",
+                      "script":  {
+                                     "exec":  [
+                                                  "if (!pm.environment.get(\u0027futureDate\u0027)) {",
+                                                  "  const date = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);",
+                                                  "  date.setUTCHours(14, 0, 0, 0);",
+                                                  "  pm.environment.set(\u0027futureDate\u0027, date.toISOString().replace(\u0027.000Z\u0027, \u0027\u0027));",
+                                                  "}"
+                                              ]
+                                 }
+                  }
+              ]
 }

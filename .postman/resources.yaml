@@ -1,0 +1,14 @@
+# Use this workspace to collaborate
+workspace:
+  id: c1e975af-4588-4c3e-88d1-14e87620c438
+
+localResources:
+  collections:
+    - ../postman-collections/agendamento-collection.postman_collection.json
+    - ../postman-collections/auth-collection.postman_collection.json
+    - ../postman-collections/e2e-collection.postman_collection.json
+  environments:
+    - ../postman-collections/environment.postman_environment.json
+  specs:
+    - ../agendamento-service/target/classes/graphql/consulta.graphqls
+    - ../agendamento-service/src/main/resources/graphql/consulta.graphqls

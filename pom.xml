@@ -1,21 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-	POM agregador do Tech Challenge 3.
-
-	O projeto é dividido em dois serviços independentes, cada um com sua própria
-	aplicação Spring Boot, seu próprio banco e sua própria imagem Docker:
-
-	  agendamento-service  API REST de consultas e autenticação; publica eventos.
-	  notificacao-service  consome os eventos e envia os lembretes.
-
-	O módulo `common` carrega apenas o contrato de mensageria (os eventos e os
-	nomes de exchange/routing key). É a única dependência de compilação entre os
-	dois serviços — em tempo de execução eles não se conhecem, conversam só pelo
-	RabbitMQ.
-
-	Este POM não declara dependências de aplicação: cada serviço declara as suas,
-	para que a lista de dependências de um não arraste o outro.
--->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
@@ -23,14 +6,13 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>4.1.0</version>
-		<relativePath/> <!-- lookup parent from repository -->
-	</parent>
+		<relativePath/> </parent>
 	<groupId>com.fiap.challenge</groupId>
 	<artifactId>techChallenge3</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>techChallenge3</name>
-	<description>Sistema de agendamento de consultas com serviço de notificações</description>
+	<description>Appointment scheduling system with notification service</description>
 
 	<modules>
 		<module>common</module>
@@ -70,7 +52,6 @@
 	</dependencyManagement>
 
 	<dependencies>
-		<!-- Único item comum a todos os módulos: o processador de anotações do Lombok. -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
@@ -81,10 +62,6 @@
 	<build>
 		<pluginManagement>
 			<plugins>
-				<!--
-					Só os módulos executáveis declaram este plugin; o `common` é uma
-					biblioteca e não deve ser empacotado como aplicação.
-				-->
 				<plugin>
 					<groupId>org.springframework.boot</groupId>
 					<artifactId>spring-boot-maven-plugin</artifactId>
@@ -128,11 +105,6 @@
 					</execution>
 				</executions>
 			</plugin>
-			<!--
-				Relatório de cobertura de testes, um por módulo. A versão é declarada
-				explicitamente porque o spring-boot-starter-parent não gerencia este plugin.
-				Relatórios em <módulo>/target/site/jacoco/index.html ao rodar `mvnw verify`.
-			-->
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
@@ -150,6 +122,30 @@
 						<goals>
 							<goal>report</goal>
 						</goals>
+					</execution>
+					<execution>
+						<id>check-business-coverage</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+						<configuration>
+							<includes>
+								<include>**/application/usecase/**</include>
+							</includes>
+							<rules>
+								<rule>
+									<element>BUNDLE</element>
+									<limits>
+										<limit>
+											<counter>LINE</counter>
+											<value>COVEREDRATIO</value>
+											<minimum>0.60</minimum>
+										</limit>
+									</limits>
+								</rule>
+							</rules>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>

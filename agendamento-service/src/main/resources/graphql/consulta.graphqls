@@ -1,0 +1,30 @@
+enum StatusConsulta {
+    AGENDADA
+    REALIZADA
+    CANCELADA
+}
+
+type Paciente {
+    id: ID!
+    nome: String!
+}
+
+type Medico {
+    id: ID!
+    nome: String!
+}
+
+type Consulta {
+    id: ID!
+    paciente: Paciente!
+    medico: Medico!
+    dataHora: String!
+    status: StatusConsulta!
+    observacoes: String
+}
+
+type Query {
+    consultasPorPaciente(pacienteId: ID!, status: StatusConsulta): [Consulta!]!
+    consultasFuturas(pacienteId: ID!): [Consulta!]!
+    historicoCompleto(pacienteId: ID!): [Consulta!]!
+}
