@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Material de apoio do desafio (PDFs do enunciado e das issues): nao versionar.
+*.pdf

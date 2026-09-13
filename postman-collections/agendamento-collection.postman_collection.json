@@ -1,0 +1,85 @@
+{
+  "info": {
+    "name": "TechChallenge3 - Agendamento",
+    "_postman_id": "agendamento-collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create Consulta (POST /consultas)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"pacienteId\": 1,\n  \"medicoId\": 2,\n  \"dataHora\": \"2026-10-01T10:00:00\",\n  \"observacoes\": \"Consulta de teste via Postman\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/consultas",
+          "host": ["{{base_url}}"],
+          "path": ["consultas"]
+        }
+      }
+    },
+    {
+      "name": "List Consultas (GET /consultas)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/consultas",
+          "host": ["{{base_url}}"],
+          "path": ["consultas"]
+        }
+      }
+    },
+    {
+      "name": "Get Consulta by ID (GET /consultas/{{consultaId}})",
+      "request": {
+        "method": "GET",
+        "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+        "url": {
+          "raw": "{{base_url}}/consultas/{{consultaId}}",
+          "host": ["{{base_url}}"],
+          "path": ["consultas","{{consultaId}}"]
+        }
+      }
+    },
+    {
+      "name": "Update Consulta (PUT /consultas/{{consultaId}})",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"pacienteId\": 1,\n  \"medicoId\": 2,\n  \"dataHora\": \"2026-10-02T11:00:00\",\n  \"observacoes\": \"Atualização de teste\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/consultas/{{consultaId}}",
+          "host": ["{{base_url}}"],
+          "path": ["consultas","{{consultaId}}"]
+        }
+      }
+    },
+    {
+      "name": "Delete Consulta (DELETE /consultas/{{consultaId}})",
+      "request": {
+        "method": "DELETE",
+        "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+        "url": {
+          "raw": "{{base_url}}/consultas/{{consultaId}}",
+          "host": ["{{base_url}}"],
+          "path": ["consultas","{{consultaId}}"]
+        }
+      }
+    }
+  ]
+}

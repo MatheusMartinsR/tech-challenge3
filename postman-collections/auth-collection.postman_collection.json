@@ -1,0 +1,59 @@
+{
+  "info": {
+    "name": "TechChallenge3 - Auth",
+    "_postman_id": "auth-collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Register (POST /auth/register)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nome\": \"Usuário Teste\",\n  \"email\": \"teste+paciente@example.com\",\n  \"senha\": \"senha123\",\n  \"role\": \"PACIENTE\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/register",
+          "host": ["{{base_url}}"],
+          "path": ["auth","register"]
+        }
+      }
+    },
+    {
+      "name": "Login (POST /auth/login)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"teste+paciente@example.com\",\n  \"senha\": \"senha123\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["auth","login"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Salva o token JWT na variável de ambiente 'token'",
+              "try {",
+              "  var body = pm.response.json();",
+              "  if (body && body.token) { pm.environment.set('token', body.token); }",
+              "} catch (e) { console.log('Não foi possível salvar o token:', e); }"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
