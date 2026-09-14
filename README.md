@@ -215,11 +215,11 @@ tech-challenge3/
 
 ### 3. Configurar Variáveis de Ambiente
 
-O arquivo `.env` já está configurado para desenvolvimento:
+O arquivo `.env.example` já está configurado para desenvolvimento:
 
 ```bash
 # Verificar conteúdo (arquivo já versionado)
-cat .env
+cat .env.example
 ```
 
 **Conteúdo padrão:**
@@ -600,42 +600,14 @@ docker compose up --build
 
 ### Equipe - Tech Challenge 3
 
-| Membro | Responsabilidade | GitHub |
-|--------|-----------------|--------|
-| **Matheus Martins R.** | Tech Lead, Arquitetura de Microserviços, RabbitMQ | [@MatheusMartinsR](https://github.com/MatheusMartinsR) |
-| **Colaborador 2** | Serviço de Agendamento, Controllers e Use Cases | - |
-| **Colaborador 3** | Serviço de Notificações, Event Listeners | - |
-| **Colaborador 4** | Testes, CI/CD Pipeline, Docker | - |
+| Membros:
 
-### Responsabilidades por Módulo
+   - Matheus Martins da Rocha - RM373838
+   - Pedro Luiz Braz - RM371592
+   - Alexandre J B Sato - RM372572
+   - Conrado Renno - RM370819
+   - Lucas Nogueira Pissuto - RM371783
 
-#### Serviço de Agendamento (Port 8080)
-
-- ✅ Autenticação JWT
-- ✅ Gerenciamento de Consultas (CRUD)
-- ✅ Validação de dados
-- ✅ Publicação de eventos
-- ✅ Controle de acesso por role
-
-**Proprietário:** Matheus Martins R.
-
-#### Serviço de Notificações (Port 8081)
-
-- ✅ Consumo de eventos RabbitMQ
-- ✅ Envio de notificações
-- ✅ Persistência de logs de notificação
-- ✅ Tratamento de erros e retry
-
-**Proprietário:** Matheus Martins R.
-
-#### Infraestrutura e DevOps
-
-- ✅ Docker Compose
-- ✅ CI/CD (GitHub Actions)
-- ✅ Testes e Cobertura
-- ✅ Health Checks
-
-**Proprietário:** Matheus Martins R.
 
 ---
 
