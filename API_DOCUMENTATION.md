@@ -14,12 +14,13 @@
 2. [Autenticação](#autenticação)
 3. [Endpoints REST - Autenticação](#endpoints-rest---autenticação)
 4. [Endpoints REST - Consultas](#endpoints-rest---consultas)
-5. [Modelos de Dados (DTO)](#modelos-de-dados-dto)
-6. [Códigos de Status HTTP](#códigos-de-status-http)
-7. [Códigos de Erro Customizados](#códigos-de-erro-customizados)
-8. [Exemplos de Erro](#exemplos-de-erro)
-9. [Event Stream (RabbitMQ)](#event-stream-rabbitmq)
-10. [Rate Limiting & Segurança](#rate-limiting--segurança)
+5. [GraphQL](#graphql)
+6. [Modelos de Dados (DTO)](#modelos-de-dados-dto)
+7. [Códigos de Status HTTP](#códigos-de-status-http)
+8. [Códigos de Erro Customizados](#códigos-de-erro-customizados)
+9. [Exemplos de Erro](#exemplos-de-erro)
+10. [Event Stream (RabbitMQ)](#event-stream-rabbitmq)
+11. [Rate Limiting & Segurança](#rate-limiting--segurança)
 
 ---
 
@@ -606,6 +607,53 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 | 403 | `ACESSO_NEGADO` | Paciente tentando acessar consulta de outro |
 | 404 | `RECURSO_NAO_ENCONTRADO` | Consulta não existe |
 | 500 | `ERRO_INTERNO` | Erro no servidor |
+
+---
+
+## GraphQL
+
+Além dos endpoints REST, o Serviço de Agendamento expõe uma API GraphQL (Spring for GraphQL) para consultas flexíveis sobre consultas e histórico médico.
+
+**Endpoint:** `POST /graphql`
+**GraphiQL:** disponível em `/graphiql` no perfil local do Docker Compose (`GRAPHQL_GRAPHIQL_ENABLED=true`)
+**Autenticação:** requer JWT igual aos endpoints REST
+**Autorização:** `@PreAuthorize("hasAnyRole('MEDICO', 'ENFERMEIRO', 'PACIENTE')")`, com checagem adicional de propriedade — pacientes só recuperam as próprias consultas
+
+**Schema:** `agendamento-service/src/main/resources/graphql/consulta.graphqls`, define os tipos `Consulta`, `Paciente`, `Medico`, `StatusConsulta` e as três queries abaixo.
+
+### Query: `consultasPorPaciente`
+
+```graphql
+query PatientSchedule($patientId: ID!, $status: StatusConsulta) {
+  consultasPorPaciente(pacienteId: $patientId, status: $status) {
+    id dataHora status observacoes
+    paciente { id nome }
+    medico { id nome }
+  }
+}
+```
+
+### Query: `consultasFuturas`
+
+```graphql
+query Upcoming($patientId: ID!) {
+  consultasFuturas(pacienteId: $patientId) { id dataHora status }
+}
+```
+
+### Query: `historicoCompleto`
+
+```graphql
+query History($patientId: ID!) {
+  historicoCompleto(pacienteId: $patientId) { id dataHora status observacoes }
+}
+```
+
+`historicoCompleto` retorna apenas consultas com status `REALIZADA` ou `CANCELADA`, ordenadas da mais recente para a mais antiga.
+
+### Erros GraphQL
+
+Falhas de validação ou execução são retornadas no array padrão `errors` da resposta GraphQL, incluindo violações de autorização (paciente tentando ler histórico de outro paciente).
 
 ---
 

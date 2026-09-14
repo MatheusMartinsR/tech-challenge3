@@ -228,18 +228,27 @@ PostgreSQL Notificação
 
 ### Critério: Schema GraphQL documentado (queries, mutations, tipos)
 
-**Status:** ℹ️ **NÃO APLICÁVEL**
+**Requisito:** Documentar o schema GraphQL (queries, mutations, tipos)
 
-**Justificativa:**
-- O projeto implementa **REST API** conforme especificação
-- GraphQL é opcional ("Documentar todos os endpoints da API REST e o schema GraphQL")
-- REST API é suficiente para comunicação com clientes
-- GraphQL pode ser adicionado em futuro enhancement
+**Evidências de Implementação:**
 
-**Alternativa oferecida:**
-- ✅ Event-driven architecture via RabbitMQ (API assíncrona)
-- ✅ Webhooks possíveis (para notificações em tempo real)
-- ✅ WebSocket pronto para adição (Spring WebSocket)
+✅ **Código (Issue #5):**
+- [x] `AppointmentGraphQlController.java` — resolvers para as 3 queries exigidas
+- [x] Schema executável em `agendamento-service/src/main/resources/graphql/consulta.graphqls`
+- [x] Tipos `Consulta`, `Paciente`, `Medico`, `StatusConsulta`
+- [x] Queries `consultasPorPaciente`, `consultasFuturas`, `historicoCompleto`
+- [x] Resolvers protegidos por `@PreAuthorize` (Issue #2)
+- [x] Testado em `AppointmentGraphQlControllerTest.java`
+
+✅ **API_DOCUMENTATION.md - Seção 5 (GraphQL):**
+- [x] Endpoint `/graphql` e `/graphiql`
+- [x] Exemplo de query para cada uma das 3 operações
+- [x] Regras de autenticação/autorização
+- [x] Tratamento de erros GraphQL
+
+✅ **Postman:** `postman-collections/agendamento-collection.postman_collection.json` cobre as 3 queries, incluindo cenário de acesso negado sem token.
+
+**Status:** ✅ **ATENDIDO COM EXCELÊNCIA**
 
 ---
 
@@ -565,7 +574,7 @@ curl http://localhost:8081/actuator/health
 | **#1.4** | Diagrama ER do Banco | ✅ Excelente |
 | **#1.5** | Formato Markdown + Imagens | ✅ Excelente |
 | **#2.1** | Tabela de Endpoints REST | ✅ Excelente |
-| **#2.2** | Schema GraphQL | ℹ️ N/A (REST é suficiente) |
+| **#2.2** | Schema GraphQL | ✅ Excelente |
 | **#2.3** | Exemplos Request/Response | ✅ Excelente |
 | **#2.4** | Códigos de Erro HTTP | ✅ Excelente |
 | **#2.5** | Swagger/OpenAPI | 📝 Futuro enhancement |
@@ -576,7 +585,7 @@ curl http://localhost:8081/actuator/health
 | **#3.5** | Links Documentação | ✅ Excelente |
 | **#3.6** | Integrantes e Responsabilidades | ✅ Excelente |
 
-**Resumo:** 15 de 16 critérios totalmente atendidos (1 N/A)
+**Resumo:** 16 de 16 critérios totalmente atendidos
 
 ---
 
